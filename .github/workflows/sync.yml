@@ -13,8 +13,8 @@ jobs:
   copy:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-2019]
-        version: [1.17, 1.18, 1.19]
+        os: [ubuntu-latest, windows-latest]
+        version: [1.19, 1.20]
     runs-on: ${{ matrix.os }}
     steps:
     - name: pull
@@ -35,9 +35,7 @@ jobs:
     needs: copy
     strategy:
       matrix:
-        version: [1.17, 1.18, 1.19]
-    env:
-      DOCKER_CLI_EXPERIMENTAL: enabled
+        version: [1.19, 1.20]
     steps:
     - name: create
       run: |
