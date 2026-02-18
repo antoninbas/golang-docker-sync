@@ -11,68 +11,21 @@ on:
 
 jobs:
   copy:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        version: ["1.23", "1.24", "1.25"]
-    runs-on: ${{ matrix.os }}
+        version: ["1.24", "1.25", "1.26"]
     steps:
-    - name: pull
-      shell: bash
-      run: |
-        docker pull golang:${{ matrix.version }}
+    - name: install crane
+      uses: imjasonh/setup-crane@v0.4
     - name: login
       uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-    - name: push
-      shell: bash
+    - name: copy
       run: |
-        docker tag golang:${{ matrix.version }} antrea/golang:${{ runner.os }}-${{ matrix.version }}
-        docker push antrea/golang:${{ runner.os }}-${{ matrix.version }}
-  manifest:
-    runs-on: [ubuntu-latest]
-    needs: copy
-    strategy:
-      matrix:
-        version: ["1.23", "1.24", "1.25"]
-    env:
-      DOCKER_CLI_EXPERIMENTAL: enabled
-    steps:
-    - name: info
+        crane copy golang:${{ matrix.version }} antrea/golang:${{ matrix.version }}
+    - name: copy nanoserver
       run: |
-        docker version
-    - name: login
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-    - name: create
-      run: |
-        docker manifest create antrea/golang:${{ matrix.version }} antrea/golang:Linux-${{ matrix.version }} antrea/golang:Windows-${{ matrix.version }}
-    - name: push
-      run: |
-        docker manifest push antrea/golang:${{ matrix.version }}
-
-  copy-nanoserver:
-    strategy:
-      matrix:
-        os: [windows-latest]
-        version: ["1.23", "1.24", "1.25"]
-    runs-on: ${{ matrix.os }}
-    steps:
-    - name: pull
-      shell: bash
-      run: |
-        docker pull golang:${{ matrix.version }}-nanoserver
-    - name: login
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-    - name: push
-      shell: bash
-      run: |
-        docker tag golang:${{ matrix.version }}-nanoserver antrea/golang:${{ matrix.version }}-nanoserver
-        docker push antrea/golang:${{ matrix.version }}-nanoserver
+        crane copy golang:${{ matrix.version }}-nanoserver antrea/golang:${{ matrix.version }}-nanoserver
